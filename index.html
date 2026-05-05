@@ -168,6 +168,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Verified Config based on your screenshot
         const firebaseConfig = {
             apiKey: "AIzaSyByi38ntA4VG-oBWU5lWH-3czXDz00IAbY",
             authDomain: "jumpagency-92d18.firebaseapp.com",
@@ -183,17 +184,12 @@
         const db = getDatabase(app);
         const statusRef = ref(db, 'agency/status');
         
-        // Update UI when database values change
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
-            const nikolaiStatus = data?.nikolai || 'available';
-            const leslieStatus = data?.leslie || 'available';
-            
-            updateUI('nikolai-btn', nikolaiStatus);
-            updateUI('leslie-btn', leslieStatus);
+            updateUI('nikolai-btn', data?.nikolai || 'available');
+            updateUI('leslie-btn', data?.leslie || 'available');
         });
 
-        // Toggle status and write to Firebase
         window.handleToggle = (name) => {
             const btn = document.getElementById(name + '-btn');
             const newStatus = btn.classList.contains('available') ? 'busy' : 'available';
@@ -201,37 +197,4 @@
         };
 
         function updateUI(id, status) {
-            const btn = document.getElementById(id);
-            if (status === 'available') {
-                btn.className = 'status-btn available';
-                btn.innerText = 'Available';
-            } else {
-                btn.className = 'status-btn unavailable';
-                btn.innerText = 'Busy';
-            }
-        }
-    </script>
-
-    <script>
-        const display = document.getElementById('calc-display');
-        
-        window.press = (val) => {
-            display.value += val;
-        };
-
-        window.clearCalc = () => {
-            display.value = "";
-        };
-
-        window.calculate = () => {
-            try {
-                // Safely evaluate the mathematical expression
-                display.value = Function('"use strict";return (' + display.value + ')')();
-            } catch (e) {
-                display.value = "Error";
-                setTimeout(clearCalc, 1500);
-            }
-        };
-    </script>
-</body>
-</html>
+            const btn = document.getElementById
