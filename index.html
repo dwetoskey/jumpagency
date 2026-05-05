@@ -51,7 +51,6 @@
 
         h3 { margin-top: 0; color: var(--accent-blue); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
 
-        /* Status Section */
         .producer-row {
             display: flex;
             justify-content: space-between;
@@ -69,12 +68,12 @@
             transition: all 0.3s ease;
             width: 130px;
             text-transform: uppercase;
+            color: white;
         }
 
         .available { background-color: var(--status-green); box-shadow: 0 0 15px rgba(39, 174, 96, 0.3); }
         .unavailable { background-color: var(--status-red); box-shadow: 0 0 15px rgba(192, 57, 43, 0.3); }
 
-        /* Calculator */
         #calc-display {
             width: 100%;
             height: 50px;
@@ -126,17 +125,17 @@
             <h3>Producer Status</h3>
             <div class="producer-row">
                 <span>NIKOLAI</span>
-                <button id="nikolai-btn" class="status-btn available" onclick="handleToggle('nikolai')">Loading...</button>
+                <button id="nikolai-btn" class="status-btn available" onclick="handleToggle('nikolai')">Available</button>
             </div>
             <div class="producer-row">
                 <span>LESLIE</span>
-                <button id="leslie-btn" class="status-btn available" onclick="handleToggle('leslie')">Loading...</button>
+                <button id="leslie-btn" class="status-btn available" onclick="handleToggle('leslie')">Available</button>
             </div>
         </div>
 
         <div class="card">
             <h3>Premium Calculator</h3>
-            <input type="text" id="calc-display" disabled>
+            <input type="text" id="calc-display" readonly>
             <div class="calc-grid">
                 <button class="calc-btn" onclick="clearCalc()">C</button>
                 <button class="calc-btn" onclick="press('/')">/</button>
@@ -169,7 +168,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Nikolai's Specific Config
         const firebaseConfig = {
             apiKey: "AIzaSyByi38ntA4VG-oBWU5lWH-3czXDz00IAbY",
             authDomain: "jumpagency-92d18.firebaseapp.com",
@@ -183,19 +181,22 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Listen for changes
         const statusRef = ref(db, 'agency/status');
+        
         onValue(statusRef, (snapshot) => {
-            const data = snapshot.val() || { nikolai: 'available', leslie: 'available' };
-            updateUI('nikolai-btn', data.nikolai);
-            updateUI('leslie-btn', data.leslie);
+            const data = snapshot.val();
+            // Default to available if database is empty
+            const nikolaiStatus = data?.nikolai || 'available';
+            const leslieStatus = data?.leslie || 'available';
+            
+            updateUI('nikolai-btn', nikolaiStatus);
+            updateUI('leslie-btn', leslieStatus);
         });
 
-        // Global function for buttons
         window.handleToggle = (name) => {
             const btn = document.getElementById(name + '-btn');
-            const currentStatus = btn.classList.contains('available') ? 'busy' : 'available';
-            set(ref(db, 'agency/status/' + name), currentStatus);
+            const newStatus = btn.classList.contains('available') ? 'busy' : 'available';
+            set(ref(db, 'agency/status/' + name), newStatus);
         };
 
         function updateUI(id, status) {
@@ -211,13 +212,25 @@
     </script>
 
     <script>
-        // Calculator Logic
-        let display = document.getElementById('calc-display');
-        window.press = (v) => display.value += v;
-        window.clearCalc = () => display.value = "";
+        // Fixed Calculator Logic
+        const display = document.getElementById('calc-display');
+        
+        window.press = (val) => {
+            display.value += val;
+        };
+
+        window.clearCalc = () => {
+            display.value = "";
+        };
+
         window.calculate = () => {
-            try { display.value = eval(display.value); } 
-            catch { display.value = "Error"; }
+            try {
+                // Using a safer evaluation for basic math
+                display.value = Function('"use strict";return (' + display.value + ')')();
+            } catch (e) {
+                display.value = "Error";
+                setTimeout(clearCalc, 1500);
+            }
         };
     </script>
 </body>
