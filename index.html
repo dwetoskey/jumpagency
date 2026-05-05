@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Nikolai Jump Agency - Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #0f0f0f;
+            --card-bg: #1a1a1a;
+            --accent-blue: #00a8ff;
+            --text-main: #f0f0f0;
+            --status-green: #27ae60;
+            --status-red: #c0392b;
+            --border-color: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--accent-blue);
+            padding-bottom: 10px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h3 { margin-top: 0; color: var(--accent-blue); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
+
+        /* Status Section */
+        .producer-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .status-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            width: 130px;
+            text-transform: uppercase;
+        }
+
+        .available { background-color: var(--status-green); box-shadow: 0 0 15px rgba(39, 174, 96, 0.3); }
+        .unavailable { background-color: var(--status-red); box-shadow: 0 0 15px rgba(192, 57, 43, 0.3); }
+
+        /* Calculator */
+        #calc-display {
+            width: 100%;
+            height: 50px;
+            background: #000;
+            border: 1px solid var(--border-color);
+            color: var(--accent-blue);
+            text-align: right;
+            padding: 10px;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .calc-btn {
+            padding: 15px;
+            background: #2d2d2d;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .calc-btn:hover { background: #3d3d3d; }
+
+        .empty-state {
+            color: #555;
+            text-align: center;
+            padding: 40px 0;
+            border: 1px dashed #333;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>THE NIKOLAI JUMP AGENCY</h1>
+    </header>
+
+    <div class="grid-container">
+        <div class="card">
+            <h3>Producer Status</h3>
+            <div class="producer-row">
+                <span>NIKOLAI</span>
+                <button id="nikolai-btn" class="status-btn available" onclick="handleToggle('nikolai')">Loading...</button>
+            </div>
+            <div class="producer-row">
+                <span>LESLIE</span>
+                <button id="leslie-btn" class="status-btn available" onclick="handleToggle('leslie')">Loading...</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Premium Calculator</h3>
+            <input type="text" id="calc-display" disabled>
+            <div class="calc-grid">
+                <button class="calc-btn" onclick="clearCalc()">C</button>
+                <button class="calc-btn" onclick="press('/')">/</button>
+                <button class="calc-btn" onclick="press('*')">×</button>
+                <button class="calc-btn" onclick="press('-')">-</button>
+                <button class="calc-btn" onclick="press('7')">7</button>
+                <button class="calc-btn" onclick="press('8')">8</button>
+                <button class="calc-btn" onclick="press('9')">9</button>
+                <button class="calc-btn" onclick="press('+')">+</button>
+                <button class="calc-btn" onclick="press('4')">4</button>
+                <button class="calc-btn" onclick="press('5')">5</button>
+                <button class="calc-btn" onclick="press('6')">6</button>
+                <button class="calc-btn" onclick="calculate()">=</button>
+                <button class="calc-btn" onclick="press('1')">1</button>
+                <button class="calc-btn" onclick="press('2')">2</button>
+                <button class="calc-btn" onclick="press('3')">3</button>
+                <button class="calc-btn" onclick="press('0')">0</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Agency Resources</h3>
+            <div class="empty-state">
+                Resource links will appear here.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Nikolai's Specific Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyByi38ntA4VG-oBWU5lWH-3czXDz00IAbY",
+            authDomain: "jumpagency-92d18.firebaseapp.com",
+            projectId: "jumpagency-92d18",
+            storageBucket: "jumpagency-92d18.firebasestorage.app",
+            messagingSenderId: "1020287968124",
+            appId: "1:1020287968124:web:74d0e4375fddb633733af9",
+            measurementId: "G-2XX866CB4V"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Listen for changes
+        const statusRef = ref(db, 'agency/status');
+        onValue(statusRef, (snapshot) => {
+            const data = snapshot.val() || { nikolai: 'available', leslie: 'available' };
+            updateUI('nikolai-btn', data.nikolai);
+            updateUI('leslie-btn', data.leslie);
+        });
+
+        // Global function for buttons
+        window.handleToggle = (name) => {
+            const btn = document.getElementById(name + '-btn');
+            const currentStatus = btn.classList.contains('available') ? 'busy' : 'available';
+            set(ref(db, 'agency/status/' + name), currentStatus);
+        };
+
+        function updateUI(id, status) {
+            const btn = document.getElementById(id);
+            if (status === 'available') {
+                btn.className = 'status-btn available';
+                btn.innerText = 'Available';
+            } else {
+                btn.className = 'status-btn unavailable';
+                btn.innerText = 'Busy';
+            }
+        }
+    </script>
+
+    <script>
+        // Calculator Logic
+        let display = document.getElementById('calc-display');
+        window.press = (v) => display.value += v;
+        window.clearCalc = () => display.value = "";
+        window.calculate = () => {
+            try { display.value = eval(display.value); } 
+            catch { display.value = "Error"; }
+        };
+    </script>
+</body>
+</html>
