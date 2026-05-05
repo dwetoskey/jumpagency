@@ -125,11 +125,11 @@
             <h3>Producer Status</h3>
             <div class="producer-row">
                 <span>NIKOLAI</span>
-                <button id="nikolai-btn" class="status-btn available" onclick="handleToggle('nikolai')">Available</button>
+                <button id="nikolai-btn" class="status-btn available" onclick="window.handleToggle('nikolai')">Available</button>
             </div>
             <div class="producer-row">
                 <span>LESLIE</span>
-                <button id="leslie-btn" class="status-btn available" onclick="handleToggle('leslie')">Available</button>
+                <button id="leslie-btn" class="status-btn available" onclick="window.handleToggle('leslie')">Available</button>
             </div>
         </div>
 
@@ -168,7 +168,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Verified Config based on your screenshot
         const firebaseConfig = {
             apiKey: "AIzaSyByi38ntA4VG-oBWU5lWH-3czXDz00IAbY",
             authDomain: "jumpagency-92d18.firebaseapp.com",
@@ -190,6 +189,7 @@
             updateUI('leslie-btn', data?.leslie || 'available');
         });
 
+        // ATTACHED TO WINDOW TO FIX REFERENCE ERROR
         window.handleToggle = (name) => {
             const btn = document.getElementById(name + '-btn');
             const newStatus = btn.classList.contains('available') ? 'busy' : 'available';
@@ -197,4 +197,30 @@
         };
 
         function updateUI(id, status) {
-            const btn = document.getElementById
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            if (status === 'available') {
+                btn.className = 'status-btn available';
+                btn.innerText = 'Available';
+            } else {
+                btn.className = 'status-btn unavailable';
+                btn.innerText = 'Busy';
+            }
+        }
+    </script>
+
+    <script>
+        const display = document.getElementById('calc-display');
+        window.press = (val) => display.value += val;
+        window.clearCalc = () => display.value = "";
+        window.calculate = () => {
+            try {
+                display.value = Function('"use strict";return (' + display.value + ')')();
+            } catch (e) {
+                display.value = "Error";
+                setTimeout(clearCalc, 1500);
+            }
+        };
+    </script>
+</body>
+</html>
