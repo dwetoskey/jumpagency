@@ -171,6 +171,7 @@
         const firebaseConfig = {
             apiKey: "AIzaSyByi38ntA4VG-oBWU5lWH-3czXDz00IAbY",
             authDomain: "jumpagency-92d18.firebaseapp.com",
+            databaseURL: "https://jumpagency-92d18-default-rtdb.firebaseio.com",
             projectId: "jumpagency-92d18",
             storageBucket: "jumpagency-92d18.firebasestorage.app",
             messagingSenderId: "1020287968124",
@@ -180,12 +181,11 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-
         const statusRef = ref(db, 'agency/status');
         
+        // Update UI when database values change
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
-            // Default to available if database is empty
             const nikolaiStatus = data?.nikolai || 'available';
             const leslieStatus = data?.leslie || 'available';
             
@@ -193,6 +193,7 @@
             updateUI('leslie-btn', leslieStatus);
         });
 
+        // Toggle status and write to Firebase
         window.handleToggle = (name) => {
             const btn = document.getElementById(name + '-btn');
             const newStatus = btn.classList.contains('available') ? 'busy' : 'available';
@@ -212,7 +213,6 @@
     </script>
 
     <script>
-        // Fixed Calculator Logic
         const display = document.getElementById('calc-display');
         
         window.press = (val) => {
@@ -225,7 +225,7 @@
 
         window.calculate = () => {
             try {
-                // Using a safer evaluation for basic math
+                // Safely evaluate the mathematical expression
                 display.value = Function('"use strict";return (' + display.value + ')')();
             } catch (e) {
                 display.value = "Error";
