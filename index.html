@@ -13,6 +13,8 @@
             --status-green: #27ae60;
             --status-red: #c0392b;
             --border-color: #2d2d2d;
+            --result-bg: #1e2a24;
+            --calc-highlight: #a8e6cf;
         }
 
         body {
@@ -31,11 +33,13 @@
             margin-bottom: 40px;
             border-bottom: 2px solid var(--accent-blue);
             padding-bottom: 10px;
+            width: 100%;
+            max-width: 1100px;
         }
 
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
             gap: 25px;
             width: 100%;
             max-width: 1100px;
@@ -49,8 +53,9 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        h3 { margin-top: 0; color: var(--accent-blue); text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
+        h3 { margin-top: 0; color: var(--accent-blue); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px; margin-bottom: 20px; }
 
+        /* Producer Status */
         .producer-row {
             display: flex;
             justify-content: space-between;
@@ -71,46 +76,33 @@
             color: white;
         }
 
-        .available { background-color: var(--status-green); box-shadow: 0 0 15px rgba(39, 174, 96, 0.3); }
-        .unavailable { background-color: var(--status-red); box-shadow: 0 0 15px rgba(192, 57, 43, 0.3); }
+        .available { background-color: var(--status-green); box-shadow: 0 0 15px rgba(39, 174, 96, 0.2); }
+        .unavailable { background-color: var(--status-red); box-shadow: 0 0 15px rgba(192, 57, 43, 0.2); }
 
-        #calc-display {
-            width: 100%;
-            height: 50px;
-            background: #000;
-            border: 1px solid var(--border-color);
-            color: var(--accent-blue);
-            text-align: right;
-            padding: 10px;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            box-sizing: border-box;
+        /* Premium Calculator Styles */
+        .calc-form label { display: block; margin: 15px 0 5px; font-size: 0.85rem; font-weight: bold; color: #888; }
+        .calc-form select, .calc-form input {
+            width: 100%; padding: 12px; font-size: 1rem;
+            border: 1px solid var(--border-color); border-radius: 6px;
+            background: #262626; color: #fff; box-sizing: border-box;
         }
+        .calc-form select:focus, .calc-form input:focus { outline: none; border-color: var(--accent-blue); }
+        
+        .vehicles-toggle { display: none; }
 
-        .calc-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+        .result-box {
+            margin-top: 20px; padding: 20px; 
+            background: var(--result-bg); border-radius: 8px; text-align: center;
+            border: 1px solid #2d3d34;
         }
-
-        .calc-btn {
-            padding: 15px;
-            background: #2d2d2d;
-            border: none;
-            color: white;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1.1rem;
+        .net-premium-val { font-size: 2.5rem; font-weight: 800; color: var(--calc-highlight); }
+        .breakdown-details { 
+            margin-top: 15px; padding: 12px; font-size: 0.85rem; 
+            background: #222; border-radius: 6px; text-align: left; line-height: 1.6; color: #aaa;
         }
-
-        .calc-btn:hover { background: #3d3d3d; }
 
         .empty-state {
-            color: #555;
-            text-align: center;
-            padding: 40px 0;
-            border: 1px dashed #333;
-            border-radius: 8px;
+            color: #555; text-align: center; padding: 40px 0; border: 1px dashed #333; border-radius: 8px;
         }
     </style>
 </head>
@@ -121,8 +113,9 @@
     </header>
 
     <div class="grid-container">
+        
         <div class="card">
-            <h3>Producer Status</h3>
+            <h3>Team Availability</h3>
             <div class="producer-row">
                 <span>NIKOLAI</span>
                 <button id="nikolai-btn" class="status-btn available" onclick="window.handleToggle('nikolai')">Available</button>
@@ -134,34 +127,49 @@
         </div>
 
         <div class="card">
-            <h3>Premium Calculator</h3>
-            <input type="text" id="calc-display" readonly>
-            <div class="calc-grid">
-                <button class="calc-btn" onclick="clearCalc()">C</button>
-                <button class="calc-btn" onclick="press('/')">/</button>
-                <button class="calc-btn" onclick="press('*')">×</button>
-                <button class="calc-btn" onclick="press('-')">-</button>
-                <button class="calc-btn" onclick="press('7')">7</button>
-                <button class="calc-btn" onclick="press('8')">8</button>
-                <button class="calc-btn" onclick="press('9')">9</button>
-                <button class="calc-btn" onclick="press('+')">+</button>
-                <button class="calc-btn" onclick="press('4')">4</button>
-                <button class="calc-btn" onclick="press('5')">5</button>
-                <button class="calc-btn" onclick="press('6')">6</button>
-                <button class="calc-btn" onclick="calculate()">=</button>
-                <button class="calc-btn" onclick="press('1')">1</button>
-                <button class="calc-btn" onclick="press('2')">2</button>
-                <button class="calc-btn" onclick="press('3')">3</button>
-                <button class="calc-btn" onclick="press('0')">0</button>
+            <h3>Net Premium Calculator</h3>
+            <div class="calc-form">
+                <label>Policy Type</label>
+                <select id="policyType" onchange="updateCalcFields()">
+                    <option value="">-- Select --</option>
+                    <option value="Auto">Auto</option>
+                    <option value="Home">Home</option>
+                    <option value="Foremost Home">Foremost Home</option>
+                    <option value="Life">Life</option>
+                    <option value="Specialty">Specialty</option>
+                    <option value="Commercial">Commercial</option>
+                </select>
+
+                <label>Carrier</label>
+                <select id="carrier" onchange="runCalculation()">
+                    <option value="">-- Select --</option>
+                    <option value="Farmers">Farmers</option>
+                    <option value="BW">Bristol West</option>
+                    <option value="Foremost">Foremost</option>
+                </select>
+
+                <label>Written Premium</label>
+                <input type="number" id="writtenPremium" placeholder="0.00" step="0.01" oninput="runCalculation()">
+
+                <div id="vehicleSection" class="vehicles-toggle">
+                    <label>Number of Vehicles</label>
+                    <input type="number" id="numVehicles" value="1" min="1" oninput="runCalculation()">
+                </div>
+
+                <div class="result-box" id="calcResult">
+                    <div style="color: #666;">Enter details to calculate</div>
+                </div>
+                <div id="breakdown" class="breakdown-details" style="display:none;"></div>
             </div>
         </div>
 
         <div class="card">
             <h3>Agency Resources</h3>
             <div class="empty-state">
-                Resource links will appear here.
+                No active links for this agency yet.
             </div>
         </div>
+
     </div>
 
     <script type="module">
@@ -185,18 +193,17 @@
         
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
-            updateUI('nikolai-btn', data?.nikolai || 'available');
-            updateUI('leslie-btn', data?.leslie || 'available');
+            updateStatusUI('nikolai-btn', data?.nikolai || 'available');
+            updateStatusUI('leslie-btn', data?.leslie || 'available');
         });
 
-        // ATTACHED TO WINDOW TO FIX REFERENCE ERROR
         window.handleToggle = (name) => {
             const btn = document.getElementById(name + '-btn');
             const newStatus = btn.classList.contains('available') ? 'busy' : 'available';
             set(ref(db, 'agency/status/' + name), newStatus);
         };
 
-        function updateUI(id, status) {
+        function updateStatusUI(id, status) {
             const btn = document.getElementById(id);
             if (!btn) return;
             if (status === 'available') {
@@ -210,17 +217,58 @@
     </script>
 
     <script>
-        const display = document.getElementById('calc-display');
-        window.press = (val) => display.value += val;
-        window.clearCalc = () => display.value = "";
-        window.calculate = () => {
-            try {
-                display.value = Function('"use strict";return (' + display.value + ')')();
-            } catch (e) {
-                display.value = "Error";
-                setTimeout(clearCalc, 1500);
+        function updateCalcFields() {
+            const type = document.getElementById('policyType').value;
+            const vehicleSection = document.getElementById('vehicleSection');
+            vehicleSection.style.display = (type === 'Auto') ? 'block' : 'none';
+            runCalculation();
+        }
+
+        function runCalculation() {
+            const type = document.getElementById('policyType').value;
+            const carrier = document.getElementById('carrier').value;
+            const premium = parseFloat(document.getElementById('writtenPremium').value) || 0;
+            const vehicles = (type === 'Auto') ? (parseFloat(document.getElementById('numVehicles').value) || 1) : 0;
+
+            const resultDiv = document.getElementById('calcResult');
+            const breakdownDiv = document.getElementById('breakdown');
+
+            if (!type || !carrier || premium <= 0) {
+                resultDiv.innerHTML = '<div style="color: #666;">Enter details to calculate</div>';
+                breakdownDiv.style.display = 'none';
+                return;
             }
-        };
+
+            // Calculation Constants from Dave's Toolkit
+            const addlAssessment = (type === "Auto" && carrier === "Farmers") ? vehicles * 15 : 0;
+            let statutoryAssessment = 0;
+            if (type === "Auto" && carrier === "BW") statutoryAssessment = vehicles * 57.12;
+            else if (type === "Auto" && carrier === "Farmers") statutoryAssessment = vehicles * 14;
+            
+            const mccaDeficit = (type === "Auto" && carrier === "Farmers") ? vehicles * 24 : 0;
+
+            let netPremium = premium;
+            if (type === "Auto" && carrier === "Farmers") {
+                netPremium = premium - addlAssessment - statutoryAssessment - mccaDeficit;
+            } else if (type === "Auto" && carrier === "BW") {
+                netPremium = premium - statutoryAssessment;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="net-premium-val">$${netPremium.toFixed(2)}</div>
+                <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">ESTIMATED NET PREMIUM</div>
+            `;
+
+            let details = `<strong>Breakdown:</strong><br>`;
+            details += `Written: $${premium.toFixed(2)}<br>`;
+            if (addlAssessment > 0) details += `<span style="color:#e74c3c">− Addl Assessment: $${addlAssessment.toFixed(2)}</span><br>`;
+            if (statutoryAssessment > 0) details += `<span style="color:#e74c3c">− Stat Assessment: $${statutoryAssessment.toFixed(2)}</span><br>`;
+            if (mccaDeficit > 0) details += `<span style="color:#e74c3c">− MCCA Deficit: $${mccaDeficit.toFixed(2)}</span><br>`;
+            details += `<span style="color:var(--calc-highlight)"><strong>Total Net: $${netPremium.toFixed(2)}</strong></span>`;
+
+            breakdownDiv.innerHTML = details;
+            breakdownDiv.style.display = 'block';
+        }
     </script>
 </body>
 </html>
